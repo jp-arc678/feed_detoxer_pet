@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="accessibility_service_description">บริการดักจับเพื่อป้องกันการเสพติดหน้าจอของแอป Feed Detoxer</string>
+</resources>
