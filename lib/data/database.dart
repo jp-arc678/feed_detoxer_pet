@@ -1,18 +1,29 @@
 import 'package:hive_flutter/hive_flutter.dart';
 
-// Box name constants — referenced by repositories in Phase 4.
+import 'models/target_app_config.dart';
+import 'models/session_record.dart';
+import 'models/pet_persona.dart';
+import 'models/pet_bond_state.dart';
+
+// Box name constants — used by repositories.
 const String kBoxTargetApps = 'targetApps';
-const String kBoxSessions = 'sessions';
-const String kBoxPersona = 'persona';
-const String kBoxBondState = 'bondState';
+const String kBoxSessions   = 'sessions';
+const String kBoxPersona    = 'persona';
+const String kBoxBondState  = 'bondState';
 
 Future<void> initDatabase() async {
   await Hive.initFlutter();
-  // Hive type adapters will be registered here in Phase 4.
+
+  // Register adapters before opening any box.
+  Hive.registerAdapter(TargetAppConfigAdapter());
+  Hive.registerAdapter(SessionRecordAdapter());
+  Hive.registerAdapter(PetPersonaAdapter());
+  Hive.registerAdapter(PetBondStateAdapter());
+
   await Future.wait([
-    Hive.openBox<Map>(kBoxTargetApps),
-    Hive.openBox<Map>(kBoxSessions),
-    Hive.openBox(kBoxPersona),
-    Hive.openBox(kBoxBondState),
+    Hive.openBox<TargetAppConfig>(kBoxTargetApps),
+    Hive.openBox<SessionRecord>(kBoxSessions),
+    Hive.openBox<PetPersona>(kBoxPersona),
+    Hive.openBox<PetBondState>(kBoxBondState),
   ]);
 }

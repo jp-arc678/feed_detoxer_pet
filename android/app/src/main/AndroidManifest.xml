@@ -21,6 +21,10 @@
     <!-- 6. รับ Event เมื่อเครื่องเปิด (สำหรับ WorkManager watchdog ใน Phase 3) -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
+    <!-- 7. ให้แสดงแอปที่ติดตั้งทั้งหมดในหน้าเลือกแอป (Android 11+) -->
+    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"
+        tools:ignore="QueryAllPackagesPermission" />
+
     <application
         android:label="Feed Detoxer"
         android:name="${applicationName}"

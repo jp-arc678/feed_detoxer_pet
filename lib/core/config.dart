@@ -35,4 +35,8 @@ class AppConfig {
 
   // --- Streak ---
   static const int streakResetAfterMissedDays = 1;
+
+  // --- Pet rendering ---
+  // Set to true in Phase 10 once pet.riv is ready; no other code changes needed.
+  static const bool useRivePet = false;
 }

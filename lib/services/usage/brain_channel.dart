@@ -12,9 +12,19 @@ class BrainChannel {
   static Future<void> setTargetApps(List<String> packages) =>
       _control.invokeMethod('setTargetApps', {'packages': packages});
 
-  static Stream<BrainEvent> get events => _events
-      .receiveBroadcastStream()
-      .map((data) => BrainEvent.fromMap(Map<String, dynamic>.from(data as Map)));
+  // Lazily cached so every caller gets the SAME broadcast stream.
+  // Each call to receiveBroadcastStream() registers a NEW message handler,
+  // silently replacing the previous one — only the last subscriber would ever
+  // receive events. Caching here means setMessageHandler is called exactly
+  // once regardless of how many listeners subscribe.
+  static Stream<BrainEvent>? _eventsCache;
+  static Stream<BrainEvent> get events {
+    _eventsCache ??= _events
+        .receiveBroadcastStream()
+        .map((data) =>
+            BrainEvent.fromMap(Map<String, dynamic>.from(data as Map)));
+    return _eventsCache!;
+  }
 }
 
 // ---------------------------------------------------------------------------

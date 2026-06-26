@@ -1,74 +1,72 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class PetSettingsScreen extends StatelessWidget {
+import '../../core/providers.dart';
+import '../../pet/pet_controller.dart';
+import '../../pet/pet_view.dart';
+
+class PetSettingsScreen extends ConsumerWidget {
   const PetSettingsScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
+  Widget build(BuildContext context, WidgetRef ref) {
+    final bond = ref.watch(bondProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Pet Settings'),
-        backgroundColor: colorScheme.surface,
-      ),
+      appBar: AppBar(title: const Text('Pet Settings')),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          // Interactive pet area
+          // ── Interactive pet area ─────────────────────────────────────────
           Center(
             child: Column(
               children: [
+                // Tap to poke — Phase 9 adds drag + full interaction hook.
                 GestureDetector(
-                  onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                          content: Text('Poke! — interactions wired Phase 9')),
-                    );
-                  },
-                  child: Container(
-                    width: 140,
-                    height: 140,
-                    decoration: BoxDecoration(
-                      color: colorScheme.primaryContainer,
-                      borderRadius: BorderRadius.circular(70),
-                    ),
-                    child: const Center(
-                      child: Text('🐾', style: TextStyle(fontSize: 56)),
-                    ),
-                  ),
+                  onTap: () =>
+                      ref.read(petControllerProvider).fire(PetController.poke),
+                  child: const PetView(size: 140),
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Tap to poke • Drag to move — Phase 9',
+                  'Tap to poke  •  Drag coming in Phase 9',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: colorScheme.outline,
+                        color: Theme.of(context).colorScheme.outline,
+                      ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Bond: ${bond.bondScore.toStringAsFixed(0)} / 100  •  '
+                  'Mood baseline: ${(bond.moodBaseline * 100).toStringAsFixed(0)}%',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 28),
 
-          // Persona fields (read-only stubs)
+          // ── Persona fields ───────────────────────────────────────────────
           Text(
             'Persona',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+            style: Theme.of(context)
+                .textTheme
+                .titleMedium
+                ?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 12),
-          _PersonaField(label: 'Pet name', value: 'Peto'),
-          _PersonaField(label: 'What the pet calls you', value: 'buddy'),
-          _PersonaField(label: 'Tone', value: 'friendly'),
-          _PersonaField(label: 'Language', value: 'English'),
-          _PersonaField(
+          const _PersonaField(label: 'Pet name', value: 'Peto'),
+          const _PersonaField(label: 'What the pet calls you', value: 'buddy'),
+          const _PersonaField(label: 'Tone', value: 'friendly'),
+          const _PersonaField(label: 'Language', value: 'English'),
+          const _PersonaField(
               label: 'Reminder notes', value: 'remind me about my project'),
           const SizedBox(height: 8),
           Text(
-            'Persona editing wired in Phase 9',
+            'Persona editing + saving wired in Phase 9.',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: colorScheme.outline,
+                  color: Theme.of(context).colorScheme.outline,
                 ),
           ),
         ],
@@ -78,9 +76,9 @@ class PetSettingsScreen extends StatelessWidget {
 }
 
 class _PersonaField extends StatelessWidget {
+  const _PersonaField({required this.label, required this.value});
   final String label;
   final String value;
-  const _PersonaField({required this.label, required this.value});
 
   @override
   Widget build(BuildContext context) {

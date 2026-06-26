@@ -1,8 +1,19 @@
-// @HiveType annotations added in Phase 4.
+import 'package:hive/hive.dart';
+
+part 'pet_bond_state.g.dart';
+
+@HiveType(typeId: 3)
 class PetBondState {
+  @HiveField(0)
   final double bondScore;
+
+  @HiveField(1)
   final double moodBaseline;
+
+  @HiveField(2)
   final int streakDays;
+
+  @HiveField(3)
   final DateTime lastInteractionAt;
 
   const PetBondState({

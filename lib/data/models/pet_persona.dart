@@ -1,9 +1,22 @@
-// @HiveType annotations added in Phase 4.
+import 'package:hive/hive.dart';
+
+part 'pet_persona.g.dart';
+
+@HiveType(typeId: 2)
 class PetPersona {
+  @HiveField(0)
   final String name;
+
+  @HiveField(1)
   final String userNickname;
+
+  @HiveField(2)
   final String tone;
+
+  @HiveField(3)
   final String language;
+
+  @HiveField(4)
   final String reminderNotes;
 
   const PetPersona({
