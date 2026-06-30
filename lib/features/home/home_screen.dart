@@ -124,14 +124,17 @@ class _PetArea extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final bond = ref.watch(bondProvider);
+    final lineAsync = ref.watch(homeDialogueLineProvider);
 
     return Center(
       child: Column(
         children: [
-          // Tap the pet to poke it.
+          // Tap the pet to poke it and refresh the dialogue line.
           GestureDetector(
-            onTap: () =>
-                ref.read(petControllerProvider).fire(PetController.poke),
+            onTap: () {
+              ref.read(petControllerProvider).fire(PetController.poke);
+              ref.invalidate(homeDialogueLineProvider);
+            },
             child: const PetView(size: 160),
           ),
           const SizedBox(height: 8),
@@ -142,7 +145,14 @@ class _PetArea extends ConsumerWidget {
                 .headlineSmall
                 ?.copyWith(fontWeight: FontWeight.bold),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 10),
+          // Speech bubble — shimmer dots while the line is loading.
+          lineAsync.when(
+            loading: () => const _SpeechBubble(text: '...', loading: true),
+            error: (_, _) => const SizedBox.shrink(),
+            data: (line) => _SpeechBubble(text: line),
+          ),
+          const SizedBox(height: 6),
           Text(
             'Bond: ${bond.bondScore.toStringAsFixed(0)} / 100',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
@@ -246,6 +256,37 @@ class _AppIcon extends StatelessWidget {
       return Image.memory(icon!, width: 36, height: 36, gaplessPlayback: true);
     }
     return const Icon(Icons.android, size: 36);
+  }
+}
+
+// ─── Speech bubble ────────────────────────────────────────────────────────────
+
+class _SpeechBubble extends StatelessWidget {
+  const _SpeechBubble({required this.text, this.loading = false});
+  final String text;
+  final bool loading;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 24),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      decoration: BoxDecoration(
+        color: cs.secondaryContainer,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Text(
+        text,
+        textAlign: TextAlign.center,
+        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: loading
+                  ? cs.onSecondaryContainer.withValues(alpha: 0.5)
+                  : cs.onSecondaryContainer,
+              fontStyle: FontStyle.italic,
+            ),
+      ),
+    );
   }
 }
 

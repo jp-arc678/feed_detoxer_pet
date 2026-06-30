@@ -5,8 +5,11 @@ import 'brain_channel.dart';
 import '../../core/config.dart';
 import '../../data/models/session_record.dart';
 import '../../data/repositories/bond_repository.dart';
+import '../../data/repositories/persona_repository.dart';
 import '../../data/repositories/session_repository.dart';
 import '../../data/repositories/target_app_repository.dart';
+import '../../services/dialogue/dialogue_service.dart';
+import '../../services/dialogue/pet_dialogue_provider.dart';
 import '../../services/mood/mood_engine.dart';
 
 // Listens to Brain events and persists completed sessions to Hive.
@@ -42,6 +45,7 @@ class SessionListener {
         _sessionStart = DateTime.now();
         _activePackage = event.packageName;
         debugPrint('[SessionListener] session started: ${event.packageName}');
+        _pregenAlarmLines(event.packageName);
 
       case BrainEventType.sessionEnded:
         if (_sessionStart != null && _activePackage == event.packageName) {
@@ -93,4 +97,28 @@ class SessionListener {
 
   void _onError(Object error) =>
       debugPrint('[SessionListener] stream error: $error');
+
+  // Pre-generate alarm lines at session start so they're cached before the
+  // overlay fires. Generates for the threshold moment and one repeat interval.
+  void _pregenAlarmLines(String packageName) {
+    final config = _targetRepo.get(packageName);
+    if (config == null || !config.enabled) return;
+    final persona = PersonaRepository().get();
+    final threshold = config.thresholdMinutes;
+
+    for (final elapsed in [
+      threshold,
+      threshold + AppConfig.overlayRepeatIntervalMinutes,
+    ]) {
+      final intensity = MoodEngine.sessionIntensity(elapsed, threshold);
+      DialogueService.instance.pregen(DialogueRequest(
+        trigger: DialogueTrigger.alarm,
+        persona: persona,
+        appDisplayName: config.displayName,
+        elapsedMinutes: elapsed,
+        thresholdMinutes: threshold,
+        moodIntensity: intensity,
+      ));
+    }
+  }
 }

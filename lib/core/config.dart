@@ -39,4 +39,12 @@ class AppConfig {
   // --- Pet rendering ---
   // Set to true in Phase 10 once pet.riv is ready; no other code changes needed.
   static const bool useRivePet = false;
+
+  // --- Dialogue (Phase 8) ---
+  // Set to true AFTER completing Firebase setup in firebase_ai_dialogue_provider.dart.
+  static const bool useFirebaseAi = true;
+  // Gemini model used by FirebaseAiDialogueProvider.
+  static const String geminiModel = 'gemini-2.5-flash';
+  // Seconds before the AI call times out and falls back to canned.
+  static const int dialogueTimeoutSeconds = 5;
 }

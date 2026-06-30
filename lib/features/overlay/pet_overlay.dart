@@ -76,8 +76,12 @@ class _PetOverlayPageState extends State<PetOverlayPage> {
     await FlutterOverlayWindow.closeOverlay();
   }
 
-  String _cannedLine() {
-    final nickname = 'buddy';
+  // Uses the pre-generated line passed via shareData from OverlayManager.
+  // Falls back to a canned line when shareData didn't include one.
+  String get _dialogueLine {
+    final passed = widget.data['dialogueLine'] as String?;
+    if (passed != null && passed.isNotEmpty) return passed;
+    final nickname = widget.data['userNickname'] as String? ?? 'buddy';
     if (_elapsed == _threshold) {
       return "hey $nickname~ it's been $_elapsed minutes in $_displayName already~";
     }
@@ -113,7 +117,7 @@ class _PetOverlayPageState extends State<PetOverlayPage> {
                   color: Colors.white.withValues(alpha: 0.07),
                 ),
                 child: Text(
-                  _cannedLine(),
+                  _dialogueLine,
                   textAlign: TextAlign.center,
                   style: const TextStyle(
                     color: Colors.white,

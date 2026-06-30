@@ -5,8 +5,16 @@
 import FlutterMacOS
 import Foundation
 
-import rive_common
+import firebase_ai
+import firebase_app_check
+import firebase_auth
+import firebase_core
+import rive_native
 
 func RegisterGeneratedPlugins(registry: FlutterPluginRegistry) {
-  RivePlugin.register(with: registry.registrar(forPlugin: "RivePlugin"))
+  FirebaseAIPlugin.register(with: registry.registrar(forPlugin: "FirebaseAIPlugin"))
+  FirebaseAppCheckPlugin.register(with: registry.registrar(forPlugin: "FirebaseAppCheckPlugin"))
+  FLTFirebaseAuthPlugin.register(with: registry.registrar(forPlugin: "FLTFirebaseAuthPlugin"))
+  FLTFirebaseCorePlugin.register(with: registry.registrar(forPlugin: "FLTFirebaseCorePlugin"))
+  RiveNativePlugin.register(with: registry.registrar(forPlugin: "RiveNativePlugin"))
 }

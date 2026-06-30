@@ -7,10 +7,13 @@ import '../data/models/pet_bond_state.dart';
 import '../data/models/session_record.dart';
 import '../data/models/target_app_config.dart';
 import '../data/repositories/bond_repository.dart';
+import '../data/repositories/persona_repository.dart';
 import '../data/repositories/session_repository.dart';
 import '../data/repositories/target_app_repository.dart';
 import '../pet/pet_controller.dart';
 import '../pet/placeholder_pet_controller.dart';
+import '../services/dialogue/dialogue_service.dart';
+import '../services/dialogue/pet_dialogue_provider.dart';
 
 // ---------------------------------------------------------------------------
 // Target apps — mutable list backed by Hive + synced to Brain on every change
@@ -92,6 +95,31 @@ final appInfoProvider =
 // ---------------------------------------------------------------------------
 
 final bondProvider = Provider<PetBondState>((ref) => BondRepository().get());
+
+// ---------------------------------------------------------------------------
+// Home screen dialogue line (greeting or record comment, generated async)
+// autoDispose so a fresh line is generated each time the provider is rebuilt.
+// ---------------------------------------------------------------------------
+
+final homeDialogueLineProvider = FutureProvider.autoDispose<String>((ref) {
+  final bond = ref.watch(bondProvider);
+  final persona = PersonaRepository().get();
+  final aggregates = ref.watch(todayAggregatesProvider);
+  final totalSec = aggregates.fold(0, (s, a) => s + a.totalSec);
+  final openCount = aggregates.fold(0, (s, a) => s + a.openCount);
+
+  // Show a greeting when the pet is happy; comment on record when struggling.
+  final trigger = bond.moodBaseline <= 0.35
+      ? DialogueTrigger.greeting
+      : DialogueTrigger.recordComment;
+
+  return DialogueService.instance.getLine(DialogueRequest(
+    trigger: trigger,
+    persona: persona,
+    moodIntensity: bond.moodBaseline,
+    usage: UsageSummary(totalSecToday: totalSec, openCountToday: openCount),
+  ));
+});
 
 // ---------------------------------------------------------------------------
 // Pet controller singleton — swap to RivePetController in Phase 10

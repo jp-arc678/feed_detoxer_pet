@@ -1,8 +1,10 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_overlay_window/flutter_overlay_window.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:usage_stats/usage_stats.dart';
 
+import 'core/config.dart';
 import 'core/providers.dart';
 import 'core/theme.dart';
 import 'data/database.dart';
@@ -12,6 +14,8 @@ import 'features/onboarding/permissions_screen.dart';
 import 'features/overlay/overlay_app.dart';
 import 'features/pet_settings/pet_settings_screen.dart';
 import 'features/targets/target_list_screen.dart';
+import 'firebase_options.dart';
+import 'services/dialogue/dialogue_service.dart';
 import 'services/usage/brain_channel.dart';
 import 'services/usage/overlay_manager.dart';
 import 'services/usage/session_listener.dart';
@@ -21,10 +25,18 @@ import 'services/usage/session_listener.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initDatabase();
+
+  // Firebase must be initialized before DialogueService creates the AI provider.
+  if (AppConfig.useFirebaseAi) {
+    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  }
+
   await TargetAppRepository().syncToBrainOnStartup();
   await BrainChannel.start();
   SessionListener.instance.start();
   OverlayManager.instance.start();
+  DialogueService.instance.init();
+
   runApp(const ProviderScope(child: FeedDetoxerApp()));
 }
 

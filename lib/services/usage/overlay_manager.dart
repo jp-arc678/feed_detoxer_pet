@@ -4,7 +4,11 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_overlay_window/flutter_overlay_window.dart';
 
 import '../../core/config.dart';
+import '../../data/repositories/persona_repository.dart';
 import '../../data/repositories/target_app_repository.dart';
+import '../../services/dialogue/dialogue_service.dart';
+import '../../services/dialogue/pet_dialogue_provider.dart';
+import '../../services/mood/mood_engine.dart';
 import 'brain_channel.dart';
 
 // Listens to Brain events and drives the overlay window.
@@ -80,6 +84,18 @@ class OverlayManager {
         minutesPast > 0 && minutesPast % AppConfig.overlayRepeatIntervalMinutes == 0;
     if (!isFirstCross && !isRepeat) return;
 
+    // Resolve dialogue line synchronously (cache → canned, never blocks).
+    final intensity = MoodEngine.sessionIntensity(elapsedMin, threshold);
+    final persona = PersonaRepository().get();
+    final line = DialogueService.instance.getLineSync(DialogueRequest(
+      trigger: DialogueTrigger.alarm,
+      persona: persona,
+      appDisplayName: config.displayName,
+      elapsedMinutes: elapsedMin,
+      thresholdMinutes: threshold,
+      moodIntensity: intensity,
+    ));
+
     await _ensureOverlayVisible();
     await FlutterOverlayWindow.shareData(<String, dynamic>{
       'type': 'pet',
@@ -87,9 +103,10 @@ class OverlayManager {
       'displayName': config.displayName,
       'elapsedMinutes': elapsedMin,
       'thresholdMinutes': threshold,
+      'dialogueLine': line,
     });
     debugPrint('[OverlayManager] pet overlay shown: '
-        '${config.displayName} at ${elapsedMin}min (threshold ${threshold}min)');
+        '${config.displayName} at ${elapsedMin}min (threshold ${threshold}min) — "$line"');
   }
 
   Future<void> _close() async {
