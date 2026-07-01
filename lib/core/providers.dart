@@ -4,14 +4,17 @@ import 'package:installed_apps/app_info.dart';
 
 import '../data/models/daily_aggregate.dart';
 import '../data/models/pet_bond_state.dart';
+import '../data/models/pet_persona.dart';
 import '../data/models/session_record.dart';
 import '../data/models/target_app_config.dart';
 import '../data/repositories/bond_repository.dart';
 import '../data/repositories/persona_repository.dart';
 import '../data/repositories/session_repository.dart';
 import '../data/repositories/target_app_repository.dart';
+import '../core/config.dart';
 import '../pet/pet_controller.dart';
 import '../pet/placeholder_pet_controller.dart';
+import '../pet/rive_pet_controller.dart';
 import '../services/dialogue/dialogue_service.dart';
 import '../services/dialogue/pet_dialogue_provider.dart';
 
@@ -97,13 +100,19 @@ final appInfoProvider =
 final bondProvider = Provider<PetBondState>((ref) => BondRepository().get());
 
 // ---------------------------------------------------------------------------
+// Persona (invalidated after save so homeDialogueLineProvider auto-rebuilds)
+// ---------------------------------------------------------------------------
+
+final personaProvider = Provider<PetPersona>((ref) => PersonaRepository().get());
+
+// ---------------------------------------------------------------------------
 // Home screen dialogue line (greeting or record comment, generated async)
 // autoDispose so a fresh line is generated each time the provider is rebuilt.
 // ---------------------------------------------------------------------------
 
 final homeDialogueLineProvider = FutureProvider.autoDispose<String>((ref) {
   final bond = ref.watch(bondProvider);
-  final persona = PersonaRepository().get();
+  final persona = ref.watch(personaProvider); // rebuilds when persona is saved
   final aggregates = ref.watch(todayAggregatesProvider);
   final totalSec = aggregates.fold(0, (s, a) => s + a.totalSec);
   final openCount = aggregates.fold(0, (s, a) => s + a.openCount);
@@ -126,5 +135,5 @@ final homeDialogueLineProvider = FutureProvider.autoDispose<String>((ref) {
 // ---------------------------------------------------------------------------
 
 final petControllerProvider = ChangeNotifierProvider<PetController>(
-  (ref) => PlaceholderPetController(),
+  (ref) => AppConfig.useRivePet ? RivePetController() : PlaceholderPetController(),
 );

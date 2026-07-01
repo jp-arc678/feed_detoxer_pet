@@ -10,6 +10,7 @@ const String kBoxTargetApps = 'targetApps';
 const String kBoxSessions   = 'sessions';
 const String kBoxPersona    = 'persona';
 const String kBoxBondState  = 'bondState';
+const String kBoxSettings   = 'settings'; // generic key-value store (Box<dynamic>)
 
 Future<void> initDatabase() async {
   await Hive.initFlutter();
@@ -25,5 +26,6 @@ Future<void> initDatabase() async {
     Hive.openBox<SessionRecord>(kBoxSessions),
     Hive.openBox<PetPersona>(kBoxPersona),
     Hive.openBox<PetBondState>(kBoxBondState),
+    Hive.openBox<dynamic>(kBoxSettings),
   ]);
 }

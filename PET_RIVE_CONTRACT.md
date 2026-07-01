@@ -47,6 +47,7 @@ The code maps `mood` linearly across these states; design your blend tree accord
 
 ## Notes
 
-- The code initialises the Rive runtime with `await RiveFile.initialize()` before `runApp` in Phase 10.
+- The Rive runtime is initialised automatically when the file loads (`File.asset()` calls `RiveNative.init()` internally). No manual init call is needed.
 - The widget is wrapped in a `RepaintBoundary` for performance.
 - Keep the artboard size square; the code scales it to the requested `size` parameter.
+- If the artboard name `"Pet"` or state machine name `"PetSM"` don't match exactly, the app shows a broken-image error tile and logs the problem to the debug console.

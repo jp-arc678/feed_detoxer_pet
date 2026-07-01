@@ -4,6 +4,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:usage_stats/usage_stats.dart';
 
 import '../../main.dart';
+import '../../services/usage/brain_channel.dart';
 
 class PermissionsScreen extends StatefulWidget {
   const PermissionsScreen({super.key});
@@ -18,6 +19,7 @@ class _PermissionsScreenState extends State<PermissionsScreen>
   bool _overlayGranted = false;
   bool _notifGranted = false;
   bool _batteryGranted = false;
+  bool _isMiui = false;
 
   bool get _requiredGranted => _usageGranted && _overlayGranted;
 
@@ -45,6 +47,10 @@ class _PermissionsScreenState extends State<PermissionsScreen>
     final overlay = await FlutterOverlayWindow.isPermissionGranted();
     final notif = await Permission.notification.isGranted;
     final battery = await Permission.ignoreBatteryOptimizations.isGranted;
+    final manufacturer = await BrainChannel.getManufacturer();
+    final isMiui = manufacturer.contains('xiaomi') ||
+        manufacturer.contains('redmi') ||
+        manufacturer.contains('poco');
 
     if (!mounted) return;
     setState(() {
@@ -52,6 +58,7 @@ class _PermissionsScreenState extends State<PermissionsScreen>
       _overlayGranted = overlay;
       _notifGranted = notif;
       _batteryGranted = battery;
+      _isMiui = isMiui;
     });
   }
 
@@ -152,6 +159,20 @@ class _PermissionsScreenState extends State<PermissionsScreen>
                       _refresh();
                     },
                   ),
+                  if (_isMiui) ...[
+                    const SizedBox(height: 10),
+                    _PermissionTile(
+                      icon: Icons.security_outlined,
+                      title: 'MIUI Auto-start',
+                      description:
+                          'On Xiaomi / MIUI, auto-start must be enabled separately in Security settings. '
+                          'Without it, the background monitor stops when the screen turns off. '
+                          "Grant cannot be checked automatically — if the pet stops appearing, open this.",
+                      isGranted: false,
+                      isRequired: false,
+                      onTap: () => BrainChannel.openMiuiAutoStart(),
+                    ),
+                  ],
                   const SizedBox(height: 24),
                 ],
               ),

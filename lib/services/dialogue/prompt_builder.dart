@@ -8,9 +8,13 @@ class PromptBuilder {
     final notes = p.reminderNotes.isNotEmpty
         ? '\nExtra context the pet knows: ${p.reminderNotes}'
         : '';
-    return '''You are a cute digital pet named ${p.name}.
+    // Language goes first — models weight early tokens more heavily, and
+    // repeating it in both the system instruction and the user message
+    // prevents the model from defaulting to English when context is English.
+    return '''LANGUAGE: ${p.language}. Every single word of your reply must be in ${p.language}. Do not use any other language.
+
+You are a cute digital pet named ${p.name}.
 Personality: ${p.tone}.
-Speak in ${p.language}.
 Call the user "${p.userNickname}".$notes
 
 Rules (strictly follow):
@@ -18,16 +22,19 @@ Rules (strictly follow):
 - Use the user's nickname naturally.
 - Warm, supportive, never guilt-tripping.
 - End the message with a tilde (~).
-- Respond in ${p.language} only.
+- Write only in ${p.language}. Zero English words if ${p.language} is not English.
 - No medical advice. No harmful content.''';
   }
 
   static String userMessage(DialogueRequest req) {
+    // Language tag appended to every user message so the model sees it
+    // in both the system instruction and the turn it must respond to.
+    final lang = '[Respond entirely in ${req.persona.language}]';
     return switch (req.trigger) {
-      DialogueTrigger.alarm         => _alarm(req),
-      DialogueTrigger.greeting      => 'Write a short warm greeting for the user.',
-      DialogueTrigger.recordComment => _record(req),
-      DialogueTrigger.interaction   => 'The user just poked you. React cutely in 1 sentence.',
+      DialogueTrigger.alarm         => '${_alarm(req)} $lang',
+      DialogueTrigger.greeting      => 'Write a short warm greeting for the user. $lang',
+      DialogueTrigger.recordComment => '${_record(req)} $lang',
+      DialogueTrigger.interaction   => 'The user just poked you. React cutely in 1 sentence. $lang',
     };
   }
 

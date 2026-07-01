@@ -1,12 +1,45 @@
+// ignore_for_file: deprecated_member_use
+import 'package:rive/rive.dart' show BooleanInput, NumberInput, TriggerInput;
+
 import 'pet_controller.dart';
 
-// Phase 10: load assets/rive/pet.riv and wire PetSM inputs.
-// Enable by setting AppConfig.useRivePet = true in lib/core/config.dart.
-// The widget that renders this controller lives in RivePetWidget (Phase 10).
+// Drives the real Rive animation. Enable by setting AppConfig.useRivePet = true.
+// Inputs are null until RivePetWidget calls bindInputs() after loading pet.riv.
+// The file-level ignore suppresses deprecation warnings on the Rive input
+// accessor methods — the data-binding alternative requires editor setup and is
+// not suitable for code-controlled animations.
 class RivePetController extends PetController {
   double _mood = 0.3;
   String? _activeTrigger;
   bool _isDragging = false;
+
+  NumberInput? _moodInput;
+  final Map<String, TriggerInput> _triggerInputs = {};
+  BooleanInput? _isDraggingInput;
+
+  // Called by RivePetWidget once the .riv file is loaded and the state machine
+  // is initialised. Immediately pushes current state into the Rive inputs.
+  void bindInputs({
+    required NumberInput? moodInput,
+    required Map<String, TriggerInput> triggerInputs,
+    required BooleanInput? isDraggingInput,
+  }) {
+    _moodInput = moodInput;
+    _triggerInputs
+      ..clear()
+      ..addAll(triggerInputs);
+    _isDraggingInput = isDraggingInput;
+    _moodInput?.value = _mood;
+    _isDraggingInput?.value = _isDragging;
+  }
+
+  // Called by RivePetWidget in dispose() to avoid dangling references after
+  // the widget tree removes the renderer.
+  void clearInputs() {
+    _moodInput = null;
+    _triggerInputs.clear();
+    _isDraggingInput = null;
+  }
 
   @override
   double get mood => _mood;
@@ -20,14 +53,14 @@ class RivePetController extends PetController {
   @override
   void setMood(double value) {
     _mood = value.clamp(0.0, 1.0);
-    // Phase 10: stateMachine.findInput<double>('mood')?.value = _mood;
+    _moodInput?.value = _mood;
     notifyListeners();
   }
 
   @override
   void fire(String trigger) {
     _activeTrigger = trigger;
-    // Phase 10: stateMachine.findInput<RiveTriggerInput>(trigger)?.fire();
+    _triggerInputs[trigger]?.fire();
     notifyListeners();
     Future.delayed(const Duration(milliseconds: 700), () {
       _activeTrigger = null;
@@ -38,7 +71,7 @@ class RivePetController extends PetController {
   @override
   void setDragging(bool value) {
     _isDragging = value;
-    // Phase 10: stateMachine.findInput<bool>('isDragging')?.value = _isDragging;
+    _isDraggingInput?.value = value;
     notifyListeners();
   }
 }

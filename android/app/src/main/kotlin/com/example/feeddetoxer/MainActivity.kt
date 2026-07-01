@@ -49,6 +49,12 @@ class MainActivity : FlutterActivity() {
                         saveTargetApps(packages)
                         result.success(null)
                     }
+                    "getManufacturer" -> {
+                        result.success(Build.MANUFACTURER)
+                    }
+                    "openMiuiAutoStart" -> {
+                        result.success(openMiuiAutoStartSettings())
+                    }
                     else -> result.notImplemented()
                 }
             }
@@ -83,6 +89,36 @@ class MainActivity : FlutterActivity() {
             .edit()
             .putStringSet(BrainService.PREFS_TARGET_APPS, packages.toSet())
             .apply()
+    }
+
+    private fun openMiuiAutoStartSettings(): Boolean {
+        val candidates = listOf(
+            // Primary MIUI auto-start intent
+            Intent("miui.intent.action.OP_AUTO_START").apply {
+                addCategory(Intent.CATEGORY_DEFAULT)
+            },
+            // Fallback: direct component on older MIUI builds
+            Intent().apply {
+                component = android.content.ComponentName(
+                    "com.miui.securitycenter",
+                    "com.miui.permcenter.autostart.AutoStartManagementActivity"
+                )
+            },
+            // Fallback: general battery/autostart page
+            Intent().apply {
+                component = android.content.ComponentName(
+                    "com.miui.powerkeeper",
+                    "com.miui.powerkeeper.ui.HiddenAppsConfigActivity"
+                )
+            }
+        )
+        for (intent in candidates) {
+            try {
+                startActivity(intent)
+                return true
+            } catch (_: Exception) { /* try next */ }
+        }
+        return false
     }
 
     private fun toggleGrayscale(enable: Boolean): Boolean {

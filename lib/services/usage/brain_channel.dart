@@ -12,6 +12,13 @@ class BrainChannel {
   static Future<void> setTargetApps(List<String> packages) =>
       _control.invokeMethod('setTargetApps', {'packages': packages});
 
+  static Future<String> getManufacturer() async =>
+      (await _control.invokeMethod<String>('getManufacturer') ?? '').toLowerCase();
+
+  // Returns true if the MIUI auto-start settings screen was successfully opened.
+  static Future<bool> openMiuiAutoStart() async =>
+      (await _control.invokeMethod<bool>('openMiuiAutoStart')) ?? false;
+
   // Lazily cached so every caller gets the SAME broadcast stream.
   // Each call to receiveBroadcastStream() registers a NEW message handler,
   // silently replacing the previous one — only the last subscriber would ever
